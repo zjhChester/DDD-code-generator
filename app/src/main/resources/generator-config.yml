@@ -1,24 +1,24 @@
 
 datasource:
-  url: jdbc:mysql://127.0.0.1:3306/settlement_dev
+  url: jdbc:mysql://127.0.0.1:3306/enterprise
   username: root
   password: root
   driver-class-name: com.mysql.cj.jdbc.Driver
 
 generator:
-  company-name: faas
-  project-name: test
-  project-path: /Users/jiahao.zhang/Documents/trash/test-code-generator/
-  test-path: /Users/jiahao.zhang/Documents/trash/test-code-generator/
-  po-name: invoice_detail #testPO.java
-  table-name: invoice_detail
+  company-name: enterprise
+  project-name: enterprise
+  project-path: /Users/jiahao.zhang/Documents/trash/code-generator/
+  test-path: /Users/jiahao.zhang/Documents/trash/code-generator/
+  po-name: enterprise #testPO.java
+  table-name: enterprise
   enable:
-    po-domain: false
-    controller: false
-    use-case: false
-    repo-interface: false
-    repo-impl: false
-    service: false
-    jpa-repo: false
+    po-domain: true
+    controller: true
+    use-case: true
+    repo-interface: true
+    repo-impl: true
+    service: true
+    jpa-repo: true
     test-builder: true
 

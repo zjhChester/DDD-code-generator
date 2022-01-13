@@ -63,4 +63,8 @@ public class ${capital_upper_table_name}TestBuilder {
     public ${capital_upper_table_name}PO persist() {
         return SpringApplicationContext.getBean(${capital_upper_table_name}JpaRepository.class).saveAndFlush(entity);
     }
+
+    public ${capital_upper_table_name}PO persist(${capital_upper_table_name}JpaRepository jpaRepo) {
+        return jpaRepo.save(entity);
+    }
 }

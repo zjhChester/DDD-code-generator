@@ -12,7 +12,8 @@ import java.util.List;
 import java.util.Map;
 
 public class CodeGenerateUtils {
-    private static final String COMPANY_NAME = PropertyUtil.getConfig("generator.company-name");;
+    private static final String COMPANY_NAME = PropertyUtil.getConfig("generator.company-name");
+
     private static final String PROJECT_NAME = PropertyUtil.getConfig("generator.project-name");
     private static final String PROJECT_PATH = PropertyUtil.getConfig("generator.project-path");
     private static final String TEST_PATH = PropertyUtil.getConfig("generator.test-path");
@@ -33,6 +34,7 @@ public class CodeGenerateUtils {
     private static final boolean ENABLE_JPA_REPO = Boolean.parseBoolean(PropertyUtil.getConfig("generator.enable.jpa-repo"));
     private static final boolean ENABLE_REPO_IMPL = Boolean.parseBoolean(PropertyUtil.getConfig("generator.enable.repo-impl"));
     private static final boolean ENABLE_TEST_BUILDER = Boolean.parseBoolean(PropertyUtil.getConfig("generator.enable.test-builder"));
+
     public static void main(String[] args) {
         CodeGenerateUtils.generate();
     }
@@ -43,6 +45,8 @@ public class CodeGenerateUtils {
             DatabaseMetaData databaseMetaData = connection.getMetaData();
             ResultSet resultSet =
                     databaseMetaData.getColumns(null, "%", REAL_TABLE_NAME, "%");
+            ResultSet builderResultSet = databaseMetaData.getColumns(null, "%", REAL_TABLE_NAME, "%");
+
 
             generatePOAndDomainFile(resultSet);
             generateControllerFile();
@@ -51,14 +55,14 @@ public class CodeGenerateUtils {
             generateRepositoryInterfaceFile();
             generateJpaRepositoryFile();
             generateRepositoryImplFile();
-            generateTestBuilder(resultSet);
+            generateTestBuilder(builderResultSet);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     private static void generateTestBuilder(ResultSet resultSet) throws Exception {
-        if(!ENABLE_TEST_BUILDER){
+        if (!ENABLE_TEST_BUILDER) {
             return;
         }
         final String diskPath = TEST_PATH + "adapter/inbound/rest/resources/" + CAPITAL_UPPER_TABLE_NAME.toLowerCase() + "/builder/";
@@ -77,7 +81,7 @@ public class CodeGenerateUtils {
     }
 
     private static void generatePOAndDomainFile(ResultSet resultSet) throws Exception {
-        if(!ENABLE_PO_AND_DOMAIN){
+        if (!ENABLE_PO_AND_DOMAIN) {
             return;
         }
         final String poDiskPath = PROJECT_PATH + "adapter/outbound/persistence/" + CAPITAL_UPPER_TABLE_NAME.toLowerCase() + "/";
@@ -122,7 +126,7 @@ public class CodeGenerateUtils {
     }
 
     private static void generateControllerFile() throws Exception {
-        if(!ENABLE_CONTROLLER){
+        if (!ENABLE_CONTROLLER) {
             return;
         }
         final String diskPath = PROJECT_PATH + "adapter/inbound/rest/resources/" + CAPITAL_UPPER_TABLE_NAME.toLowerCase() + "/";
@@ -136,7 +140,7 @@ public class CodeGenerateUtils {
     }
 
     private static void generateUseCaseFile() throws Exception {
-        if(!ENABLE_USE_CASE){
+        if (!ENABLE_USE_CASE) {
             return;
         }
         final String diskPath = PROJECT_PATH + "application/usecases/" + CAPITAL_UPPER_TABLE_NAME.toLowerCase() + "/";
@@ -150,7 +154,7 @@ public class CodeGenerateUtils {
     }
 
     private static void generateServiceFile() throws Exception {
-        if(!ENABLE_SERVICE){
+        if (!ENABLE_SERVICE) {
             return;
         }
         final String diskPath = PROJECT_PATH + "domain/" + CAPITAL_UPPER_TABLE_NAME.toLowerCase() + "/";
@@ -164,7 +168,7 @@ public class CodeGenerateUtils {
     }
 
     private static void generateRepositoryInterfaceFile() throws Exception {
-        if(!ENABLE_REPO_INTERFACE){
+        if (!ENABLE_REPO_INTERFACE) {
             return;
         }
         final String diskPath = PROJECT_PATH + "domain/" + CAPITAL_UPPER_TABLE_NAME.toLowerCase() + "/";
@@ -178,7 +182,7 @@ public class CodeGenerateUtils {
     }
 
     private static void generateJpaRepositoryFile() throws Exception {
-        if(!ENABLE_JPA_REPO){
+        if (!ENABLE_JPA_REPO) {
             return;
         }
         final String diskPath = PROJECT_PATH + "adapter/outbound/persistence/" + CAPITAL_UPPER_TABLE_NAME.toLowerCase() + "/";
@@ -192,7 +196,7 @@ public class CodeGenerateUtils {
     }
 
     private static void generateRepositoryImplFile() throws Exception {
-        if(!ENABLE_REPO_IMPL){
+        if (!ENABLE_REPO_IMPL) {
             return;
         }
         final String diskPath = PROJECT_PATH + "adapter/outbound/persistence/" + CAPITAL_UPPER_TABLE_NAME.toLowerCase() + "/";
@@ -224,7 +228,7 @@ public class CodeGenerateUtils {
     }
 
     public static String replaceUnderLineAndUpperCase(String str) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(str);
         int count = sb.indexOf("_");
         while (count != 0) {
