@@ -1,5 +1,10 @@
 package com.tw;
 
+import com.tw.borad.panel.DatabaseConnectionPanel;
+import com.tw.borad.panel.OperationPanel;
+import com.tw.util.ColumnClass;
+import com.tw.util.FreeMarkerTemplateUtils;
+import com.tw.util.PropertyUtil;
 import freemarker.template.Template;
 import org.springframework.util.StringUtils;
 
@@ -11,35 +16,55 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CodeGenerateUtils {
-    private static final String COMPANY_NAME = PropertyUtil.getConfig("generator.company-name");
+public class CodeGenerator {
+    private String COMPANY_NAME = PropertyUtil.getConfig("generator.company-name");
 
-    private static final String PROJECT_NAME = PropertyUtil.getConfig("generator.project-name");
-    private static final String PROJECT_PATH = PropertyUtil.getConfig("generator.project-path");
-    private static final String TEST_PATH = PropertyUtil.getConfig("generator.test-path");
+    private String PROJECT_NAME = PropertyUtil.getConfig("generator.project-name");
+    private String PROJECT_PATH = PropertyUtil.getConfig("generator.project-path");
+    private String TEST_PATH = PropertyUtil.getConfig("generator.test-path");
     //影响类名和变量名
-    private static final String LOWER_TABLE_NAME_WITH_UNDERSCORE = PropertyUtil.getConfig("generator.po-name");
+    private String LOWER_TABLE_NAME_WITH_UNDERSCORE = PropertyUtil.getConfig("generator.po-name");
     //设置数据库链接的真实数据库名
-    private static final String REAL_TABLE_NAME = PropertyUtil.getConfig("generator.table-name");
-    private static final String URL = PropertyUtil.getConfig("datasource.url");
-    private static final String USER = PropertyUtil.getConfig("datasource.username");
-    private static final String PASSWORD = PropertyUtil.getConfig("datasource.password");
-    private static final String CAPITAL_UPPER_TABLE_NAME = replaceUnderLineAndUpperCase(LOWER_TABLE_NAME_WITH_UNDERSCORE);
+    private String REAL_TABLE_NAME = PropertyUtil.getConfig("generator.table-name");
+    private String URL = PropertyUtil.getConfig("datasource.url");
+    private String USER = PropertyUtil.getConfig("datasource.username");
+    private String PASSWORD = PropertyUtil.getConfig("datasource.password");
+    private String CAPITAL_UPPER_TABLE_NAME = replaceUnderLineAndUpperCase(LOWER_TABLE_NAME_WITH_UNDERSCORE);
 
-    private static final boolean ENABLE_PO_AND_DOMAIN = Boolean.parseBoolean(PropertyUtil.getConfig("generator.enable.po-domain"));
-    private static final boolean ENABLE_CONTROLLER = Boolean.parseBoolean(PropertyUtil.getConfig("generator.enable.controller"));
-    private static final boolean ENABLE_USE_CASE = Boolean.parseBoolean(PropertyUtil.getConfig("generator.enable.use-case"));
-    private static final boolean ENABLE_SERVICE = Boolean.parseBoolean(PropertyUtil.getConfig("generator.enable.service"));
-    private static final boolean ENABLE_REPO_INTERFACE = Boolean.parseBoolean(PropertyUtil.getConfig("generator.enable.repo-interface"));
-    private static final boolean ENABLE_JPA_REPO = Boolean.parseBoolean(PropertyUtil.getConfig("generator.enable.jpa-repo"));
-    private static final boolean ENABLE_REPO_IMPL = Boolean.parseBoolean(PropertyUtil.getConfig("generator.enable.repo-impl"));
-    private static final boolean ENABLE_TEST_BUILDER = Boolean.parseBoolean(PropertyUtil.getConfig("generator.enable.test-builder"));
+    private boolean ENABLE_PO_AND_DOMAIN = Boolean.parseBoolean(PropertyUtil.getConfig("generator.enable.po-domain"));
+    private boolean ENABLE_CONTROLLER = Boolean.parseBoolean(PropertyUtil.getConfig("generator.enable.controller"));
+    private boolean ENABLE_USE_CASE = Boolean.parseBoolean(PropertyUtil.getConfig("generator.enable.use-case"));
+    private boolean ENABLE_SERVICE = Boolean.parseBoolean(PropertyUtil.getConfig("generator.enable.service"));
+    private boolean ENABLE_REPO_INTERFACE = Boolean.parseBoolean(PropertyUtil.getConfig("generator.enable.repo-interface"));
+    private boolean ENABLE_JPA_REPO = Boolean.parseBoolean(PropertyUtil.getConfig("generator.enable.jpa-repo"));
+    private boolean ENABLE_REPO_IMPL = Boolean.parseBoolean(PropertyUtil.getConfig("generator.enable.repo-impl"));
+    private boolean ENABLE_TEST_BUILDER = Boolean.parseBoolean(PropertyUtil.getConfig("generator.enable.test-builder"));
 
-    public static void main(String[] args) {
-        CodeGenerateUtils.generate();
+    public CodeGenerator(OperationPanel panel, DatabaseConnectionPanel databaseConnectionPanel) {
+        this.COMPANY_NAME = panel.getCompanyNameFiled().getText().trim();
+        this.PROJECT_NAME = panel.getProjectNameFiled().getText().trim();
+        this.PROJECT_PATH = panel.getProjectPath().getText().trim();
+        this.PROJECT_PATH = this.PROJECT_PATH.endsWith("/") ? this.PROJECT_PATH : this.PROJECT_PATH + "/";
+        this.TEST_PATH = panel.getTestPath().getText().trim();
+        this.TEST_PATH = this.TEST_PATH.endsWith("/") ? this.TEST_PATH : this.TEST_PATH + "/";
+        this.LOWER_TABLE_NAME_WITH_UNDERSCORE = panel.getTableBox().getSelectedItem()+"";
+        this.REAL_TABLE_NAME = REAL_TABLE_NAME = panel.getTableBox().getSelectedItem()+"";;
+        this.URL = databaseConnectionPanel.getUrl() + "/" + panel.getDatabaseBox().getSelectedItem() + "";
+        this.USER = databaseConnectionPanel.getUsername().trim();
+        this.PASSWORD = databaseConnectionPanel.getPassword().trim();
+        this.CAPITAL_UPPER_TABLE_NAME  = replaceUnderLineAndUpperCase(LOWER_TABLE_NAME_WITH_UNDERSCORE);
+
+        this.ENABLE_PO_AND_DOMAIN = panel.getPoDomain().isSelected();
+        this.ENABLE_CONTROLLER = panel.getController().isSelected();;
+        this.ENABLE_USE_CASE = panel.getUseCase().isSelected();;
+        this.ENABLE_SERVICE = panel.getService().isSelected();;
+        this.ENABLE_REPO_INTERFACE = panel.getRepoInterface().isSelected();;
+        this.ENABLE_JPA_REPO = panel.getJpaRepo().isSelected();;
+        this.ENABLE_REPO_IMPL = panel.getRepoImpl().isSelected();;
+        this.ENABLE_TEST_BUILDER = panel.getTestBuilder().isSelected();;
+        generate();
     }
-
-    public static void generate() {
+    public void generate() {
         try {
             Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
             DatabaseMetaData databaseMetaData = connection.getMetaData();
@@ -47,21 +72,36 @@ public class CodeGenerateUtils {
                     databaseMetaData.getColumns(null, "%", REAL_TABLE_NAME, "%");
             ResultSet builderResultSet = databaseMetaData.getColumns(null, "%", REAL_TABLE_NAME, "%");
 
-
-            generatePOAndDomainFile(resultSet);
-            generateControllerFile();
-            generateUseCaseFile();
-            generateServiceFile();
-            generateRepositoryInterfaceFile();
-            generateJpaRepositoryFile();
-            generateRepositoryImplFile();
-            generateTestBuilder(builderResultSet);
+            if (ENABLE_PO_AND_DOMAIN) {
+                generatePOAndDomainFile(resultSet);
+            }
+            if (ENABLE_CONTROLLER) {
+                generateControllerFile();
+            }
+            if (ENABLE_USE_CASE) {
+                generateUseCaseFile();
+            }
+            if (ENABLE_SERVICE) {
+                generateServiceFile();
+            }
+            if (ENABLE_REPO_INTERFACE) {
+                generateRepositoryInterfaceFile();
+            }
+            if (ENABLE_REPO_IMPL) {
+                generateRepositoryImplFile();
+            }
+            if (ENABLE_JPA_REPO) {
+                generateJpaRepositoryFile();
+            }
+            if (ENABLE_TEST_BUILDER) {
+                generateTestBuilder(builderResultSet);
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private static void generateTestBuilder(ResultSet resultSet) throws Exception {
+    private void generateTestBuilder(ResultSet resultSet) throws Exception {
         if (!ENABLE_TEST_BUILDER) {
             return;
         }
@@ -80,10 +120,7 @@ public class CodeGenerateUtils {
         generateFileByTemplate(templateName, mapperFile, dataMap);
     }
 
-    private static void generatePOAndDomainFile(ResultSet resultSet) throws Exception {
-        if (!ENABLE_PO_AND_DOMAIN) {
-            return;
-        }
+    private void generatePOAndDomainFile(ResultSet resultSet) throws Exception {
         final String poDiskPath = PROJECT_PATH + "adapter/outbound/persistence/" + CAPITAL_UPPER_TABLE_NAME.toLowerCase() + "/";
         makeDirIfNotExists(poDiskPath);
         final String poSuffix = "PO.java";
@@ -107,7 +144,7 @@ public class CodeGenerateUtils {
         generateFileByTemplate(domainTemplateName, domainMapperFile, dataMap);
     }
 
-    private static List<ColumnClass> getModelColumns(ResultSet resultSet) throws SQLException {
+    private List<ColumnClass> getModelColumns(ResultSet resultSet) throws SQLException {
         List<ColumnClass> columnClassList = new ArrayList<>();
         ColumnClass columnClass;
         while (resultSet.next()) {
@@ -125,10 +162,7 @@ public class CodeGenerateUtils {
         return columnClassList;
     }
 
-    private static void generateControllerFile() throws Exception {
-        if (!ENABLE_CONTROLLER) {
-            return;
-        }
+    private void generateControllerFile() throws Exception {
         final String diskPath = PROJECT_PATH + "adapter/inbound/rest/resources/" + CAPITAL_UPPER_TABLE_NAME.toLowerCase() + "/";
         makeDirIfNotExists(diskPath);
         final String suffix = "Controller.java";
@@ -139,10 +173,7 @@ public class CodeGenerateUtils {
         generateFileByTemplate(templateName, mapperFile, dataMap);
     }
 
-    private static void generateUseCaseFile() throws Exception {
-        if (!ENABLE_USE_CASE) {
-            return;
-        }
+    private void generateUseCaseFile() throws Exception {
         final String diskPath = PROJECT_PATH + "application/usecases/" + CAPITAL_UPPER_TABLE_NAME.toLowerCase() + "/";
         makeDirIfNotExists(diskPath);
         final String suffix = "UseCase.java";
@@ -153,7 +184,7 @@ public class CodeGenerateUtils {
         generateFileByTemplate(templateName, mapperFile, dataMap);
     }
 
-    private static void generateServiceFile() throws Exception {
+    private void generateServiceFile() throws Exception {
         if (!ENABLE_SERVICE) {
             return;
         }
@@ -167,7 +198,7 @@ public class CodeGenerateUtils {
         generateFileByTemplate(templateName, mapperFile, dataMap);
     }
 
-    private static void generateRepositoryInterfaceFile() throws Exception {
+    private void generateRepositoryInterfaceFile() throws Exception {
         if (!ENABLE_REPO_INTERFACE) {
             return;
         }
@@ -181,7 +212,7 @@ public class CodeGenerateUtils {
         generateFileByTemplate(templateName, mapperFile, dataMap);
     }
 
-    private static void generateJpaRepositoryFile() throws Exception {
+    private void generateJpaRepositoryFile() throws Exception {
         if (!ENABLE_JPA_REPO) {
             return;
         }
@@ -195,7 +226,7 @@ public class CodeGenerateUtils {
         generateFileByTemplate(templateName, mapperFile, dataMap);
     }
 
-    private static void generateRepositoryImplFile() throws Exception {
+    private void generateRepositoryImplFile() throws Exception {
         if (!ENABLE_REPO_IMPL) {
             return;
         }
@@ -209,14 +240,14 @@ public class CodeGenerateUtils {
         generateFileByTemplate(templateName, mapperFile, dataMap);
     }
 
-    private static void makeDirIfNotExists(String diskPath) {
+    private void makeDirIfNotExists(String diskPath) {
         File dir = new File(diskPath);
         if (!dir.exists()) {
             dir.mkdirs();
         }
     }
 
-    private static void generateFileByTemplate(final String templateName, File file, Map<String, Object> dataMap) throws Exception {
+    private void generateFileByTemplate(final String templateName, File file, Map<String, Object> dataMap) throws Exception {
         Template template = FreeMarkerTemplateUtils.getTemplate(templateName);
         FileOutputStream fos = new FileOutputStream(file);
         dataMap.put("lower_table_name_with_underscore", LOWER_TABLE_NAME_WITH_UNDERSCORE);
@@ -227,7 +258,7 @@ public class CodeGenerateUtils {
         template.process(dataMap, out);
     }
 
-    public static String replaceUnderLineAndUpperCase(String str) {
+    public String replaceUnderLineAndUpperCase(String str) {
         StringBuilder sb = new StringBuilder();
         sb.append(str);
         int count = sb.indexOf("_");

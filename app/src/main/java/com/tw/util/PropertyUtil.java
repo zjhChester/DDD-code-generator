@@ -1,4 +1,4 @@
-package com.tw;
+package com.tw.util;
 
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.core.io.ClassPathResource;

@@ -1,4 +1,4 @@
-package com.tw;
+package com.tw.util;
 
 import freemarker.cache.NullCacheStorage;
 import freemarker.template.Configuration;

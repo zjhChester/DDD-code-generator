@@ -1,4 +1,4 @@
-package com.tw;
+package com.tw.util;
 
 public class ColumnClass {
     /**
